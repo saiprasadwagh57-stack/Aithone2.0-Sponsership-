@@ -60,7 +60,7 @@ export const OrganizerLeadsModal: React.FC<OrganizerLeadsModalProps> = ({
       localStorage.setItem('aithon_organizer_auth', 'true');
       setPinError('');
     } else {
-      setPinError('Invalid passcode. Please enter the organizing committee PIN (2026).');
+      setPinError('Invalid passcode. Please try again.');
     }
   };
 
@@ -200,7 +200,7 @@ export const OrganizerLeadsModal: React.FC<OrganizerLeadsModalProps> = ({
               <div>
                 <input
                   type="password"
-                  placeholder="Enter Committee PIN (e.g. 2026)"
+                  placeholder="placeholder="Enter Committee PIN""
                   value={pinInput}
                   onChange={(e) => {
                     setPinInput(e.target.value);
@@ -224,9 +224,7 @@ export const OrganizerLeadsModal: React.FC<OrganizerLeadsModalProps> = ({
                 Unlock Organizer Console
               </button>
             </form>
-            <p className="text-[11px] text-slate-500 mt-4">
-              Passcode hint: <code className="text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">2026</code>
-            </p>
+           
           </div>
         ) : (
           <>

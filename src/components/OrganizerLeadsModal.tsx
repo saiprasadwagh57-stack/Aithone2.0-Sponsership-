@@ -201,7 +201,7 @@ export const OrganizerLeadsModal: React.FC<OrganizerLeadsModalProps> = ({
               <div>
                 <input
                   type="password"
-                  placeholder="placeholder="Enter Committee PIN""
+                  placeholder="Enter Committee PIN"
                   value={pinInput}
                   onChange={(e) => {
                     setPinInput(e.target.value);

@@ -1,0 +1,8 @@
+{
+  "name": "AiTHON 2.0 - AI Hackathon Sponsorship Portal",
+  "description": "Official Sponsorship & Partnership portal for AiTHON 2.0, a National Level AI Hackathon organized by the Department of Artificial Intelligence and Data Science, Amrutvahini College of Engineering, Sangamner in association with AIESA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

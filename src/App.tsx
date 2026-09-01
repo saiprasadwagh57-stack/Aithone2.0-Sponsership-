@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { InnovationPipeline } from './components/InnovationPipeline';
 import { WhySponsorSection } from './components/WhySponsorSection';
+import { BudgetImpactPreviewSection } from './components/BudgetImpactPreviewSection';
 import { ImpactStatsStrip } from './components/ImpactStatsStrip';
 import { SponsorshipTiersSection } from './components/SponsorshipTiersSection';
 import { RealWorldProblemSection } from './components/RealWorldProblemSection';
@@ -14,9 +15,11 @@ import { FaqSection } from './components/FaqSection';
 import { Footer } from './components/Footer';
 import { OrganizerLeadsModal } from './components/OrganizerLeadsModal';
 import { BrochureModal } from './components/BrochureModal';
+import { EventBudgetPage } from './components/EventBudgetPage';
 import { SponsorLead, TierType } from './types';
 
 export default function App() {
+  const [currentPage, setCurrentPage] = useState<'home' | 'budget'>('home');
   const [selectedTier, setSelectedTier] = useState<TierType>('Title');
   const [selectedAmount, setSelectedAmount] = useState<number | string>(85000);
   const [leads, setLeads] = useState<SponsorLead[]>([]);
@@ -41,16 +44,18 @@ export default function App() {
   useEffect(() => {
     fetchLeads();
 
-    // Check if URL contains secret admin hash #admin or #organizer or #leads
-    const checkAdminHash = () => {
+    // Check if URL contains hash for budget or secret admin
+    const checkHash = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#admin' || hash === '#organizer' || hash === '#leads') {
         setIsOrganizerOpen(true);
+      } else if (hash === '#budget' || hash === '#event-budget' || hash === '#impact') {
+        setCurrentPage('budget');
       }
     };
 
-    checkAdminHash();
-    window.addEventListener('hashchange', checkAdminHash);
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
 
     // Keyboard shortcut for organizers: Ctrl+Shift+A or Cmd+Shift+A
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -63,7 +68,7 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('hashchange', checkAdminHash);
+      window.removeEventListener('hashchange', checkHash);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
@@ -75,13 +80,50 @@ export default function App() {
     }
   };
 
+  const handleNavigateToBudget = () => {
+    setCurrentPage('budget');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    history.pushState(null, '', '#budget');
+  };
+
+  const handleNavigateHome = () => {
+    setCurrentPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.location.hash === '#budget' || window.location.hash === '#event-budget') {
+      history.pushState(null, '', window.location.pathname);
+    }
+  };
+
+  const handleNavigateToSection = (sectionId: string) => {
+    if (currentPage !== 'home') {
+      setCurrentPage('home');
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const handleSelectTier = (tier: TierType, amount?: number) => {
     setSelectedTier(tier);
     if (amount) setSelectedAmount(amount);
 
-    const formElement = document.getElementById('register');
-    if (formElement) {
-      formElement.scrollIntoView({ behavior: 'smooth' });
+    if (currentPage !== 'home') {
+      setCurrentPage('home');
+      setTimeout(() => {
+        const formElement = document.getElementById('register');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const formElement = document.getElementById('register');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -124,11 +166,6 @@ export default function App() {
     }
   };
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200 relative w-full max-w-full overflow-x-hidden">
       {/* 1. Interactive Neural Network & Particle Mesh Canvas */}
@@ -137,62 +174,87 @@ export default function App() {
       {/* 2. Custom Glowing Cyber Cursor */}
       <CustomCursor />
 
-      {/* 3. Top Navigation Command Bar (Strictly Sponsor-Facing) */}
+      {/* 3. Top Navigation Command Bar */}
       <Navbar
-        onRegisterClick={() => scrollToSection('register')}
+        currentPage={currentPage}
+        onNavigateHome={handleNavigateHome}
+        onNavigateToBudget={handleNavigateToBudget}
+        onNavigateToSection={handleNavigateToSection}
+        onRegisterClick={() => handleNavigateToSection('register')}
         onOpenBrochure={() => setIsBrochureOpen(true)}
       />
 
       <main className="flex-grow relative z-10 w-full max-w-full overflow-x-hidden">
-        {/* 4. Cinematic Hero Section: Humanoid AI Robot + Hologram + Floating Stats */}
-        <HeroSection
-          onExploreTiers={() => scrollToSection('tiers')}
-          onRegisterClick={() => scrollToSection('register')}
-          onOpenBrochure={() => setIsBrochureOpen(true)}
-        />
+        {currentPage === 'budget' ? (
+          /* ================= DEDICATED EVENT BUDGET & IMPACT PAGE ================= */
+          <EventBudgetPage
+            onNavigateHome={handleNavigateHome}
+            onNavigateToTiers={() => handleNavigateToSection('tiers')}
+            onNavigateToRegister={() => handleNavigateToSection('register')}
+            onOpenBrochure={() => setIsBrochureOpen(true)}
+          />
+        ) : (
+          /* ================= MAIN LANDING PAGE ================= */
+          <>
+            {/* 4. Cinematic Hero Section: Humanoid AI Robot + Hologram + Floating Stats */}
+            <HeroSection
+              onExploreTiers={() => handleNavigateToSection('tiers')}
+              onRegisterClick={() => handleNavigateToSection('register')}
+              onOpenBrochure={() => setIsBrochureOpen(true)}
+            />
 
-        {/* 5. Innovation Pipeline: 5 Nodes (Problem -> Talent -> AI -> Prototype -> Impact) */}
-        <InnovationPipeline />
+            {/* 5. Innovation Pipeline: 5 Nodes (Problem -> Talent -> AI -> Prototype -> Impact) */}
+            <InnovationPipeline />
 
-        {/* 6. Why Sponsor Section (4 High-Tech Cards) */}
-        <WhySponsorSection
-          onRegisterClick={() => scrollToSection('register')}
-        />
+            {/* 6. Why Sponsor Section (4 High-Tech Cards + See Where Sponsorship Goes) */}
+            <WhySponsorSection
+              onRegisterClick={() => handleNavigateToSection('register')}
+              onExploreBudget={handleNavigateToBudget}
+            />
 
-        {/* 7. Impact Statistics Strip (1000+ Innovators, 50+ Projects, 20+ Mentors, National Level) */}
-        <ImpactStatsStrip />
+            {/* 7. NEW Preview Section: WHERE DOES YOUR PARTNERSHIP CREATE IMPACT? */}
+            <BudgetImpactPreviewSection
+              onExploreBudget={handleNavigateToBudget}
+            />
 
-        {/* 8. Sponsorship Tiers (5 AI Access Cards + Comparison Matrix) */}
-        <SponsorshipTiersSection
-          onSelectTier={handleSelectTier}
-        />
+            {/* 8. Impact Statistics Strip (1000+ Innovators, 50+ Projects, 20+ Mentors, National Level) */}
+            <ImpactStatsStrip />
 
-        {/* 9. Real-World Problem Track: Enterprise Innovation Flow */}
-        <RealWorldProblemSection
-          onRegisterClick={() => scrollToSection('register')}
-        />
+            {/* 9. Sponsorship Tiers (5 AI Access Cards + Comparison Matrix) */}
+            <SponsorshipTiersSection
+              onSelectTier={handleSelectTier}
+            />
 
-        {/* 10. Sponsor Registration Console & Application Portal */}
-        <SponsorRegistrationForm
-          initialTier={selectedTier}
-          initialAmount={selectedAmount}
-          onSubmissionSuccess={handleSubmissionSuccess}
-        />
+            {/* 10. Real-World Problem Track: Enterprise Innovation Flow */}
+            <RealWorldProblemSection
+              onRegisterClick={() => handleNavigateToSection('register')}
+            />
 
-        {/* 11. Final High-Impact CTA Section */}
-        <FinalCtaSection
-          onRegisterClick={() => scrollToSection('register')}
-          onExploreTiers={() => scrollToSection('tiers')}
-        />
+            {/* 11. Sponsor Registration Console & Application Portal */}
+            <SponsorRegistrationForm
+              initialTier={selectedTier}
+              initialAmount={selectedAmount}
+              onSubmissionSuccess={handleSubmissionSuccess}
+            />
 
-        {/* 12. Sponsorship FAQ Section */}
-        <FaqSection />
+            {/* 12. Final High-Impact CTA Section */}
+            <FinalCtaSection
+              onRegisterClick={() => handleNavigateToSection('register')}
+              onExploreTiers={() => handleNavigateToSection('tiers')}
+            />
+
+            {/* 13. Sponsorship FAQ Section */}
+            <FaqSection />
+          </>
+        )}
       </main>
 
-      {/* 13. 4-Column Structured Footer (Strictly Sponsor-Facing) */}
+      {/* 14. 4-Column Structured Footer */}
       <Footer
         onOpenBrochure={() => setIsBrochureOpen(true)}
         onOpenSecretAdmin={() => setIsOrganizerOpen(true)}
+        onNavigateToBudget={handleNavigateToBudget}
+        onNavigateToSection={handleNavigateToSection}
       />
 
       {/* Organizer Leads Console (Accessed via #admin or Ctrl+Shift+A) */}
